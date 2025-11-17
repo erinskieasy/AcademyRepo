@@ -2,11 +2,107 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { insertAssetSchema, insertQuizSchema, quizJsonSchema } from "@shared/schema";
+import { insertAssetSchema, insertQuizSchema, insertCourseSchema, insertSectionSchema, quizJsonSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const objectStorageService = new ObjectStorageService();
+
+  // Course routes
+  
+  // Get all courses
+  app.get("/api/courses", async (req, res) => {
+    try {
+      const courses = await storage.getCourses();
+      res.json(courses);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      res.status(500).json({ error: "Failed to fetch courses" });
+    }
+  });
+
+  // Get course by ID with sections and assets
+  app.get("/api/courses/:id", async (req, res) => {
+    try {
+      const course = await storage.getCourse(req.params.id);
+      if (!course) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+      
+      // Get sections for this course
+      const sections = await storage.getSectionsByCourseId(req.params.id);
+      
+      // Get assets and quizzes for each section
+      const sectionsWithContent = await Promise.all(
+        sections.map(async (section) => {
+          const assets = await storage.getAssetsBySectionId(section.id);
+          const quizzes = await storage.getQuizzesBySectionId(section.id);
+          return {
+            ...section,
+            assets,
+            quizzes,
+          };
+        })
+      );
+      
+      res.json({
+        ...course,
+        sections: sectionsWithContent,
+      });
+    } catch (error) {
+      console.error("Error fetching course:", error);
+      res.status(500).json({ error: "Failed to fetch course" });
+    }
+  });
+
+  // Create new course
+  app.post("/api/courses", async (req, res) => {
+    try {
+      const validatedData = insertCourseSchema.parse(req.body);
+      const course = await storage.createCourse(validatedData);
+      res.status(201).json(course);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid course data", details: error.errors });
+      } else {
+        console.error("Error creating course:", error);
+        res.status(500).json({ error: "Failed to create course" });
+      }
+    }
+  });
+
+  // Section routes
+  
+  // Get sections by course ID
+  app.get("/api/sections", async (req, res) => {
+    try {
+      const courseId = req.query.courseId as string;
+      if (!courseId) {
+        return res.status(400).json({ error: "courseId query parameter is required" });
+      }
+      const sections = await storage.getSectionsByCourseId(courseId);
+      res.json(sections);
+    } catch (error) {
+      console.error("Error fetching sections:", error);
+      res.status(500).json({ error: "Failed to fetch sections" });
+    }
+  });
+
+  // Create new section
+  app.post("/api/sections", async (req, res) => {
+    try {
+      const validatedData = insertSectionSchema.parse(req.body);
+      const section = await storage.createSection(validatedData);
+      res.status(201).json(section);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid section data", details: error.errors });
+      } else {
+        console.error("Error creating section:", error);
+        res.status(500).json({ error: "Failed to create section" });
+      }
+    }
+  });
 
   // Asset routes
   

@@ -1,5 +1,7 @@
-import { Home, Upload, FileQuestion, ListChecks, Settings } from "lucide-react";
+import { Home, Upload, FileQuestion, ListChecks, Settings, BookOpen, ChevronRight } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -11,6 +13,12 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import type { Course } from "@shared/schema";
 
 const menuItems = [
   {
@@ -47,6 +55,11 @@ const menuItems = [
 
 export function AppSidebar() {
   const [location] = useLocation();
+  const [coursesOpen, setCoursesOpen] = useState(true);
+
+  const { data: courses = [], isLoading } = useQuery<Course[]>({
+    queryKey: ['/api/courses'],
+  });
 
   return (
     <Sidebar>
@@ -66,7 +79,66 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location === "/"}>
+                  <Link href="/" data-testid="link-dashboard">
+                    <Home className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <Collapsible open={coursesOpen} onOpenChange={setCoursesOpen}>
+          <SidebarGroup>
+            <SidebarGroupLabel asChild>
+              <CollapsibleTrigger className="flex w-full items-center justify-between hover-elevate rounded-md p-2">
+                <span className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  <span>Courses</span>
+                </span>
+                <ChevronRight 
+                  className={`w-4 h-4 transition-transform ${coursesOpen ? 'rotate-90' : ''}`} 
+                />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {isLoading ? (
+                    <div className="px-4 py-2 text-xs text-muted-foreground">Loading courses...</div>
+                  ) : courses.length === 0 ? (
+                    <div className="px-4 py-2 text-xs text-muted-foreground">No courses yet</div>
+                  ) : (
+                    courses.map((course) => (
+                      <SidebarMenuItem key={course.id}>
+                        <SidebarMenuButton 
+                          asChild 
+                          isActive={location === `/course/${course.id}`}
+                        >
+                          <Link 
+                            href={`/course/${course.id}`} 
+                            data-testid={`link-course-${course.id}`}
+                          >
+                            <span>{course.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </SidebarGroup>
+        </Collapsible>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Manage</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.slice(1).map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location === item.url}>
                     <Link href={item.url} data-testid={item.testId}>

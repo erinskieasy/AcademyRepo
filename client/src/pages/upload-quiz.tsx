@@ -10,12 +10,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { quizJsonSchema } from "@shared/schema";
+import { CourseSectionSelector } from "@/components/course-section-selector";
 
 export default function UploadQuiz() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [selectedSectionId, setSelectedSectionId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [jsonFile, setJsonFile] = useState<File | null>(null);
@@ -48,11 +51,12 @@ export default function UploadQuiz() {
 
   const uploadQuizMutation = useMutation({
     mutationFn: async () => {
-      if (!title || !description || !jsonContent) {
+      if (!title || !description || !jsonContent || !selectedSectionId) {
         throw new Error("Missing required fields");
       }
       
       await apiRequest("POST", "/api/quizzes", {
+        sectionId: selectedSectionId,
         title,
         description,
         json: jsonContent,
@@ -90,6 +94,21 @@ export default function UploadQuiz() {
           Upload a JSON file containing multiple-choice questions
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Course & Section</CardTitle>
+          <CardDescription>Choose where to add this quiz</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CourseSectionSelector
+            selectedCourseId={selectedCourseId}
+            selectedSectionId={selectedSectionId}
+            onCourseChange={setSelectedCourseId}
+            onSectionChange={setSelectedSectionId}
+          />
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>

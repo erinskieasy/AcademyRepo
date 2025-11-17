@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import Dashboard from "@/pages/dashboard";
+import CourseView from "@/pages/course-view";
 import UploadAsset from "@/pages/upload-asset";
 import UploadQuiz from "@/pages/upload-quiz";
 import ViewQuizzes from "@/pages/view-quizzes";
@@ -17,6 +18,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/course/:id" component={CourseView} />
       <Route path="/upload-asset" component={UploadAsset} />
       <Route path="/upload-quiz" component={UploadQuiz} />
       <Route path="/quizzes" component={ViewQuizzes} />

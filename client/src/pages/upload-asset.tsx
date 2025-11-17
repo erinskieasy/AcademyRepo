@@ -10,11 +10,16 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { ASSET_TYPES } from "@shared/schema";
+import { CourseSectionSelector } from "@/components/course-section-selector";
 
 export default function UploadAsset() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+  
+  // Course and section selection
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [selectedSectionId, setSelectedSectionId] = useState("");
   
   // Video file upload
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -26,7 +31,7 @@ export default function UploadAsset() {
   
   // Audio file upload
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [audioTitle, setAudioTitle] = useState("");
+  const [audioTitle] = useState("");
   
   // General link
   const [linkUrl, setLinkUrl] = useState("");
@@ -34,7 +39,7 @@ export default function UploadAsset() {
 
   const uploadVideoFileMutation = useMutation({
     mutationFn: async () => {
-      if (!videoFile || !videoTitle) throw new Error("Missing required fields");
+      if (!videoFile || !videoTitle || !selectedSectionId) throw new Error("Missing required fields");
       
       // Get upload URL from backend
       const { uploadURL } = await apiRequest<{ uploadURL: string }>("POST", "/api/objects/upload", {});
@@ -50,6 +55,7 @@ export default function UploadAsset() {
       
       // Save asset metadata to database
       await apiRequest("POST", "/api/assets", {
+        sectionId: selectedSectionId,
         type: ASSET_TYPES.VIDEO_FILE,
         title: videoTitle,
         url: uploadURL.split("?")[0], // Remove query params
@@ -80,9 +86,10 @@ export default function UploadAsset() {
 
   const uploadVideoLinkMutation = useMutation({
     mutationFn: async () => {
-      if (!videoLinkUrl || !videoLinkTitle) throw new Error("Missing required fields");
+      if (!videoLinkUrl || !videoLinkTitle || !selectedSectionId) throw new Error("Missing required fields");
       
       await apiRequest("POST", "/api/assets", {
+        sectionId: selectedSectionId,
         type: ASSET_TYPES.VIDEO_LINK,
         title: videoLinkTitle,
         url: videoLinkUrl,
@@ -110,10 +117,10 @@ export default function UploadAsset() {
 
   const uploadAudioFileMutation = useMutation({
     mutationFn: async () => {
-      if (!audioFile || !audioTitle) throw new Error("Missing required fields");
+      if (!audioFile || !audioTitle || !selectedSectionId) throw new Error("Missing required fields");
       
       // Get upload URL from backend
-      const { uploadURL } = await apiRequest<{ uploadURL: string }>("POST", "/api/objects/upload", {});
+      const { uploadURL} = await apiRequest<{ uploadURL: string }>("POST", "/api/objects/upload", {});
       
       // Upload file to object storage
       await fetch(uploadURL, {
@@ -126,6 +133,7 @@ export default function UploadAsset() {
       
       // Save asset metadata to database
       await apiRequest("POST", "/api/assets", {
+        sectionId: selectedSectionId,
         type: ASSET_TYPES.AUDIO_FILE,
         title: audioTitle,
         url: uploadURL.split("?")[0], // Remove query params
@@ -156,9 +164,10 @@ export default function UploadAsset() {
 
   const uploadLinkMutation = useMutation({
     mutationFn: async () => {
-      if (!linkUrl || !linkTitle) throw new Error("Missing required fields");
+      if (!linkUrl || !linkTitle || !selectedSectionId) throw new Error("Missing required fields");
       
       await apiRequest("POST", "/api/assets", {
+        sectionId: selectedSectionId,
         type: ASSET_TYPES.LINK,
         title: linkTitle,
         url: linkUrl,
@@ -194,6 +203,21 @@ export default function UploadAsset() {
           Add videos, audio files, or links to your repository
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Course & Section</CardTitle>
+          <CardDescription>Choose where to add this asset</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CourseSectionSelector
+            selectedCourseId={selectedCourseId}
+            selectedSectionId={selectedSectionId}
+            onCourseChange={setSelectedCourseId}
+            onSectionChange={setSelectedSectionId}
+          />
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="video-file" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
