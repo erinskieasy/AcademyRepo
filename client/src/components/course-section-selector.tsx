@@ -62,12 +62,9 @@ export function CourseSectionSelector({
 
   const createCourseMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/courses", {
-        method: "POST",
-        body: JSON.stringify({
-          title: newCourseTitle,
-          description: newCourseDescription || null,
-        }),
+      return await apiRequest("POST", "/api/courses", {
+        title: newCourseTitle,
+        description: newCourseDescription || null,
       });
     },
     onSuccess: (newCourse: Course) => {
@@ -92,13 +89,10 @@ export function CourseSectionSelector({
 
   const createSectionMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/sections", {
-        method: "POST",
-        body: JSON.stringify({
-          courseId: selectedCourseId,
-          title: newSectionTitle,
-          orderIndex: sections.length,
-        }),
+      return await apiRequest("POST", "/api/sections", {
+        courseId: selectedCourseId,
+        title: newSectionTitle,
+        orderIndex: sections.length,
       });
     },
     onSuccess: (newSection: Section) => {
