@@ -62,10 +62,11 @@ export function CourseSectionSelector({
 
   const createCourseMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", "/api/courses", {
+      const res = await apiRequest("POST", "/api/courses", {
         title: newCourseTitle,
         description: newCourseDescription || null,
       });
+      return await res.json();
     },
     onSuccess: (newCourse: Course) => {
       toast({
@@ -89,11 +90,12 @@ export function CourseSectionSelector({
 
   const createSectionMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", "/api/sections", {
+      const res = await apiRequest("POST", "/api/sections", {
         courseId: selectedCourseId,
         title: newSectionTitle,
         orderIndex: sections.length,
       });
+      return await res.json();
     },
     onSuccess: (newSection: Section) => {
       toast({
