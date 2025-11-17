@@ -1,0 +1,170 @@
+“Asset Repository Website”
+
+Use this prompt in Replit, Cursor, Windsurf, or any agent-based coding environment.
+
+Copy–paste this whole thing:
+
+PROMPT START
+
+You are an AI coding agent.
+Build a complete full-stack web application using React + TypeScript (frontend) and Supabase (backend).
+
+The project is an Asset Repository Website — essentially a lightweight “front-end for a repo” with the following capabilities:
+
+1. Core Features
+1.1 Upload + Embed Assets
+
+Users must be able to:
+
+Upload video files → stored in Supabase storage → auto-generate a playable video element on the page.
+
+Submit video links (YouTube/Vimeo/etc.) → embed them directly with an iframe.
+
+Upload audio files → stored in Supabase storage → create an audio player on the page.
+
+Add general links (URLs to PDFs, external sites, GitHub repos, etc.) → render as clickable assets.
+
+All assets must be typed, stored, and retrievable.
+
+2. Multiple-Choice Quiz Uploader
+
+There must be an interface where users can:
+
+Upload a .json file containing multiple-choice questions + answers
+
+The system should validate the structure
+
+Store it in Supabase under a quizzes table with fields:
+id, title, description, json, created_at
+
+Provide a simple viewer UI to list and open stored quizzes.
+
+3. UX / Layout
+
+A clean and simple layout:
+
+A light gray left sidebar (fixed) for navigation
+
+Main content area on the right
+
+Sidebar items:
+
+Dashboard (list all assets)
+
+Upload Asset
+
+Upload Quiz
+
+View Quizzes
+
+Settings (placeholder)
+
+No fancy styling required — TailwindCSS or simple CSS modules.
+
+4. Architecture Requirements
+
+Use a clean DDD-ish structure:
+
+Domain Layer
+
+Define TypeScript types / interfaces for:
+
+VideoAsset
+
+AudioAsset
+
+LinkAsset
+
+QuizDocument
+
+Application Layer
+
+Create reusable service functions:
+
+uploadVideo(file)
+
+uploadAudio(file)
+
+uploadQuiz(json)
+
+saveLink(url)
+
+listAssets()
+
+listQuizzes()
+
+Infrastructure Layer
+
+Implement:
+
+Supabase client
+
+Storage adapters (upload to buckets)
+
+Database adapters (CRUD functions)
+
+Presentation Layer
+
+Screens & components:
+
+Sidebar
+
+AssetList
+
+AssetUploader
+
+QuizUploader
+
+QuizList
+
+QuizViewer
+
+Routing using React Router.
+
+5. Database Schema (Supabase)
+
+Create:
+
+assets table
+id (uuid)
+type (text: 'video_file' | 'video_link' | 'audio_file' | 'link')
+url (text)
+metadata (jsonb)
+created_at (timestamp)
+
+quizzes table
+id (uuid)
+title (text)
+description (text)
+json (jsonb)
+created_at (timestamp)
+
+Storage Buckets
+
+videos
+
+audios
+
+other
+
+6. Deliverables
+
+Generate:
+
+Full project folder structure
+
+All frontend components
+
+All service files
+
+Supabase schema SQL
+
+Instructions on running locally + environment variables
+
+At least one sample quiz JSON
+
+At least one example asset document in the database
+
+Make sure the app runs immediately after installation.
+
+PROMPT END
