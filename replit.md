@@ -193,6 +193,29 @@ The application runs automatically on Replit:
 
 ## Recent Changes (November 17, 2025)
 
+### Inline Course/Section Creation & API Documentation (Latest)
+**Added inline creation capabilities and comprehensive API documentation:**
+
+**Inline Creation Features:**
+- "Create New Course" option directly in course dropdown during upload
+- "Create New Section" option directly in section dropdown during upload
+- Modal dialogs for quick creation without leaving upload page
+- Auto-select newly created courses and sections
+- Works from empty state (users can create first course from dropdown)
+- Immediate sidebar updates via cache invalidation
+
+**API Documentation:**
+- Complete API reference page in Settings
+- All GET/POST endpoints documented with examples
+- Expandable cards showing request/response formats
+- Copy-paste ready fetch() code examples
+- Covers: courses, sections, assets, quizzes, and object storage endpoints
+
+**Components Updated:**
+- CourseSectionSelector: Inline dialog forms with mutations
+- Settings page: Redesigned as comprehensive API documentation
+- Fixed blank state issue - dropdown always accessible
+
 ### Course-Based Architecture Restructuring
 **Complete restructuring to hierarchical course organization:**
 
@@ -245,7 +268,7 @@ The application runs automatically on Replit:
 ## Next Steps (Future Enhancements)
 
 1. Add section reordering functionality (drag-and-drop)
-2. Implement course/section/asset deletion
+2. Implement course/section/asset deletion UI
 3. Add asset search and filtering within courses
 4. Add quiz categories and tagging
 5. Create quiz history and score tracking
@@ -254,3 +277,5 @@ The application runs automatically on Replit:
 8. Add user authentication for protected uploads
 9. Course duplication and templating
 10. Section and asset moving between courses
+11. Add copy-to-clipboard buttons for API documentation code examples
+12. Implement API rate limiting and authentication (if making API public)
