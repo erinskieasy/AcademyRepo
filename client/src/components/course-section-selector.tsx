@@ -77,6 +77,7 @@ export function CourseSectionSelector({
       setShowNewCourseDialog(false);
       setNewCourseTitle("");
       setNewCourseDescription("");
+      onSectionChange("");
       onCourseChange(newCourse.id);
     },
     onError: (error: Error) => {
@@ -141,17 +142,6 @@ export function CourseSectionSelector({
     );
   }
 
-  if (courses.length === 0) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          No courses available. Please create a course first before uploading content.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
     <>
       <div className="space-y-4">
@@ -159,7 +149,7 @@ export function CourseSectionSelector({
           <Label htmlFor="course-select">Course</Label>
           <Select value={selectedCourseId} onValueChange={handleCourseSelectChange}>
             <SelectTrigger id="course-select" data-testid="select-course">
-              <SelectValue placeholder="Select a course" />
+              <SelectValue placeholder={courses.length === 0 ? "Create your first course" : "Select a course"} />
             </SelectTrigger>
             <SelectContent>
               {courses.map((course) => (
@@ -179,6 +169,11 @@ export function CourseSectionSelector({
               </SelectItem>
             </SelectContent>
           </Select>
+          {courses.length === 0 && !selectedCourseId && (
+            <p className="text-xs text-muted-foreground">
+              No courses yet. Click the dropdown above to create your first course.
+            </p>
+          )}
         </div>
 
         {selectedCourseId && (
