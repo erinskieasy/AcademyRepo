@@ -71,6 +71,7 @@ export default function UploadAsset() {
         description: "Video file uploaded successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/assets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
       setVideoFile(null);
       setVideoTitle("");
       setLocation("/");
@@ -102,6 +103,7 @@ export default function UploadAsset() {
         description: "Video link added successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/assets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
       setVideoLinkUrl("");
       setVideoLinkTitle("");
       setLocation("/");
@@ -149,6 +151,7 @@ export default function UploadAsset() {
         description: "Audio file uploaded successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/assets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
       setAudioFile(null);
       setAudioTitle("");
       setLocation("/");
@@ -180,6 +183,7 @@ export default function UploadAsset() {
         description: "Link added successfully",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/assets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
       setLinkUrl("");
       setLinkTitle("");
       setLocation("/");
@@ -282,7 +286,7 @@ export default function UploadAsset() {
 
               <Button
                 onClick={() => uploadVideoFileMutation.mutate()}
-                disabled={!videoFile || !videoTitle || uploadVideoFileMutation.isPending}
+                disabled={!videoFile || !videoTitle || !selectedSectionId || uploadVideoFileMutation.isPending}
                 className="w-full"
                 data-testid="button-upload-video"
               >
@@ -327,7 +331,7 @@ export default function UploadAsset() {
 
               <Button
                 onClick={() => uploadVideoLinkMutation.mutate()}
-                disabled={!videoLinkUrl || !videoLinkTitle || uploadVideoLinkMutation.isPending}
+                disabled={!videoLinkUrl || !videoLinkTitle || !selectedSectionId || uploadVideoLinkMutation.isPending}
                 className="w-full"
                 data-testid="button-add-video-link"
               >
@@ -380,7 +384,7 @@ export default function UploadAsset() {
 
               <Button
                 onClick={() => uploadAudioFileMutation.mutate()}
-                disabled={!audioFile || !audioTitle || uploadAudioFileMutation.isPending}
+                disabled={!audioFile || !audioTitle || !selectedSectionId || uploadAudioFileMutation.isPending}
                 className="w-full"
                 data-testid="button-upload-audio"
               >
@@ -425,7 +429,7 @@ export default function UploadAsset() {
 
               <Button
                 onClick={() => uploadLinkMutation.mutate()}
-                disabled={!linkUrl || !linkTitle || uploadLinkMutation.isPending}
+                disabled={!linkUrl || !linkTitle || !selectedSectionId || uploadLinkMutation.isPending}
                 className="w-full"
                 data-testid="button-add-link"
               >

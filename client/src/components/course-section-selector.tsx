@@ -30,6 +30,12 @@ export function CourseSectionSelector({
 
   const { data: sections = [], isLoading: sectionsLoading } = useQuery<Section[]>({
     queryKey: ['/api/sections', selectedCourseId],
+    queryFn: async () => {
+      if (!selectedCourseId) return [];
+      const res = await fetch(`/api/sections?courseId=${selectedCourseId}`);
+      if (!res.ok) throw new Error('Failed to fetch sections');
+      return res.json();
+    },
     enabled: !!selectedCourseId,
   });
 
