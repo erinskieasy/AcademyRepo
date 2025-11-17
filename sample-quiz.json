@@ -1,0 +1,54 @@
+{
+  "questions": [
+    {
+      "question": "What does HTML stand for?",
+      "options": [
+        "Hyper Text Markup Language",
+        "High Tech Modern Language",
+        "Home Tool Markup Language",
+        "Hyperlinks and Text Markup Language"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "question": "Which CSS property is used to change text color?",
+      "options": [
+        "text-color",
+        "font-color",
+        "color",
+        "text-style"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "question": "What is the correct syntax for referring to an external JavaScript file?",
+      "options": [
+        "<script href='app.js'>",
+        "<script name='app.js'>",
+        "<script src='app.js'>",
+        "<javascript src='app.js'>"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "question": "Which JavaScript method is used to select an HTML element by its ID?",
+      "options": [
+        "getElementById()",
+        "getElement()",
+        "selectById()",
+        "querySelector()"
+      ],
+      "correctAnswer": 0
+    },
+    {
+      "question": "What does CSS stand for?",
+      "options": [
+        "Creative Style Sheets",
+        "Cascading Style Sheets",
+        "Computer Style Sheets",
+        "Colorful Style Sheets"
+      ],
+      "correctAnswer": 1
+    }
+  ]
+}
