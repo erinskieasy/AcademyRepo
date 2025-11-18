@@ -31,7 +31,7 @@ export default function UploadAsset() {
   
   // Audio file upload
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [audioTitle] = useState("");
+  const [audioTitle, setAudioTitle] = useState("");
   
   // General link
   const [linkUrl, setLinkUrl] = useState("");
