@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Video, Music, Link as LinkIcon, FileQuestion, Plus, ChevronLeft, Trash2 } from "lucide-react";
+import { Video, Music, Link as LinkIcon, FileQuestion, Plus, ChevronLeft, Trash2, Pencil, Check } from "lucide-react";
 import type { Asset, Quiz } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -32,6 +33,7 @@ export default function CourseView() {
   const courseId = params?.id;
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
 
   const { data: course, isLoading } = useQuery<CourseWithSections>({
     queryKey: ['/api/courses', courseId],
@@ -56,6 +58,28 @@ export default function CourseView() {
       toast({
         title: "Error",
         description: error.message || "Failed to delete section",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteAssetMutation = useMutation({
+    mutationFn: async (assetId: string) => {
+      await apiRequest("DELETE", `/api/assets/${assetId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Asset deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses', courseId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/assets'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete asset",
         variant: "destructive",
       });
     },
@@ -181,16 +205,40 @@ export default function CourseView() {
                         {totalItems} {totalItems === 1 ? 'item' : 'items'}
                       </CardDescription>
                     </div>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => deleteSectionMutation.mutate(section.id)}
-                      disabled={deleteSectionMutation.isPending}
-                      data-testid={`button-delete-section-${section.id}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {editingSectionId === section.id ? (
+                        <Button
+                          variant="default"
+                          size="icon"
+                          onClick={() => setEditingSectionId(null)}
+                          data-testid={`button-save-section-${section.id}`}
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => setEditingSectionId(section.id)}
+                            data-testid={`button-edit-section-${section.id}`}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => deleteSectionMutation.mutate(section.id)}
+                            disabled={deleteSectionMutation.isPending}
+                            data-testid={`button-delete-section-${section.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -208,8 +256,9 @@ export default function CourseView() {
                           <div className="grid gap-3">
                             {section.assets.map((asset) => {
                               const isLink = asset.type === 'link';
-                              const CardWrapper = isLink ? 'a' : 'div';
-                              const cardProps = isLink ? { 
+                              const isEditing = editingSectionId === section.id;
+                              const CardWrapper = (isLink && !isEditing) ? 'a' : 'div';
+                              const cardProps = (isLink && !isEditing) ? { 
                                 href: asset.url || '#',
                                 target: "_blank",
                                 rel: "noopener noreferrer",
@@ -219,7 +268,7 @@ export default function CourseView() {
                               return (
                                 <CardWrapper key={asset.id} {...cardProps}>
                                   <Card 
-                                    className={isLink ? "hover-elevate cursor-pointer" : ""}
+                                    className={`${(isLink && !isEditing) ? "hover-elevate cursor-pointer" : ""} ${isEditing ? "group" : ""}`}
                                     data-testid={`asset-${asset.id}`}
                                   >
                                     <CardContent className="p-4">
@@ -237,6 +286,21 @@ export default function CourseView() {
                                             </Badge>
                                           </div>
                                         </div>
+                                        {isEditing && (
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              e.stopPropagation();
+                                              deleteAssetMutation.mutate(asset.id);
+                                            }}
+                                            disabled={deleteAssetMutation.isPending}
+                                            data-testid={`button-delete-asset-${asset.id}`}
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </Button>
+                                        )}
                                       </div>
                                       
                                       {asset.type === 'video_link' && asset.url && (
