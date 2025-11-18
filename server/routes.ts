@@ -71,6 +71,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete course
+  app.delete("/api/courses/:id", async (req, res) => {
+    try {
+      await storage.deleteCourse(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting course:", error);
+      res.status(500).json({ error: "Failed to delete course" });
+    }
+  });
+
   // Section routes
   
   // Get sections by course ID
@@ -101,6 +112,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error creating section:", error);
         res.status(500).json({ error: "Failed to create section" });
       }
+    }
+  });
+
+  // Delete section
+  app.delete("/api/sections/:id", async (req, res) => {
+    try {
+      await storage.deleteSection(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting section:", error);
+      res.status(500).json({ error: "Failed to delete section" });
     }
   });
 
@@ -136,6 +158,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error creating asset:", error);
         res.status(500).json({ error: "Failed to create asset" });
       }
+    }
+  });
+
+  // Delete asset
+  app.delete("/api/assets/:id", async (req, res) => {
+    try {
+      await storage.deleteAsset(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting asset:", error);
+      res.status(500).json({ error: "Failed to delete asset" });
     }
   });
 
@@ -213,6 +246,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Error creating quiz:", error);
         res.status(500).json({ error: "Failed to create quiz" });
       }
+    }
+  });
+
+  // Delete quiz
+  app.delete("/api/quizzes/:id", async (req, res) => {
+    try {
+      await storage.deleteQuiz(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting quiz:", error);
+      res.status(500).json({ error: "Failed to delete quiz" });
     }
   });
 

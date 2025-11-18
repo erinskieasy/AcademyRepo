@@ -21,23 +21,27 @@ export interface IStorage {
   getCourses(): Promise<Course[]>;
   getCourse(id: string): Promise<Course | undefined>;
   createCourse(course: InsertCourse): Promise<Course>;
+  deleteCourse(id: string): Promise<void>;
   
   // Section operations
   getSectionsByCourseId(courseId: string): Promise<Section[]>;
   getSection(id: string): Promise<Section | undefined>;
   createSection(section: InsertSection): Promise<Section>;
+  deleteSection(id: string): Promise<void>;
   
   // Asset operations
   getAssets(): Promise<Asset[]>;
   getAssetsBySectionId(sectionId: string): Promise<Asset[]>;
   getAsset(id: string): Promise<Asset | undefined>;
   createAsset(asset: InsertAsset): Promise<Asset>;
+  deleteAsset(id: string): Promise<void>;
   
   // Quiz operations
   getQuizzes(): Promise<Quiz[]>;
   getQuizzesBySectionId(sectionId: string): Promise<Quiz[]>;
   getQuiz(id: string): Promise<Quiz | undefined>;
   createQuiz(quiz: InsertQuiz): Promise<Quiz>;
+  deleteQuiz(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -57,6 +61,10 @@ export class DatabaseStorage implements IStorage {
       .values(insertCourse)
       .returning();
     return course;
+  }
+
+  async deleteCourse(id: string): Promise<void> {
+    await db.delete(courses).where(eq(courses.id, id));
   }
 
   // Section operations
@@ -79,6 +87,10 @@ export class DatabaseStorage implements IStorage {
       .values(insertSection)
       .returning();
     return section;
+  }
+
+  async deleteSection(id: string): Promise<void> {
+    await db.delete(sections).where(eq(sections.id, id));
   }
 
   // Asset operations
@@ -107,6 +119,10 @@ export class DatabaseStorage implements IStorage {
     return asset;
   }
 
+  async deleteAsset(id: string): Promise<void> {
+    await db.delete(assets).where(eq(assets.id, id));
+  }
+
   // Quiz operations
   async getQuizzes(): Promise<Quiz[]> {
     return await db.select().from(quizzes).orderBy(desc(quizzes.createdAt));
@@ -131,6 +147,10 @@ export class DatabaseStorage implements IStorage {
       .values(insertQuiz)
       .returning();
     return quiz;
+  }
+
+  async deleteQuiz(id: string): Promise<void> {
+    await db.delete(quizzes).where(eq(quizzes.id, id));
   }
 }
 

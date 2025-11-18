@@ -1,11 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Video, Music, Link as LinkIcon, FileQuestion, Plus, ChevronLeft } from "lucide-react";
+import { Video, Music, Link as LinkIcon, FileQuestion, Plus, ChevronLeft, Trash2 } from "lucide-react";
 import type { Asset, Quiz } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface Section {
   id: string;
@@ -28,10 +30,35 @@ interface CourseWithSections {
 export default function CourseView() {
   const [, params] = useRoute("/course/:id");
   const courseId = params?.id;
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: course, isLoading } = useQuery<CourseWithSections>({
     queryKey: ['/api/courses', courseId],
     enabled: !!courseId,
+  });
+
+  const deleteSectionMutation = useMutation({
+    mutationFn: async (sectionId: string) => {
+      await apiRequest("DELETE", `/api/sections/${sectionId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Section deleted successfully",
+      });
+      // Invalidate current course and all courses list
+      queryClient.invalidateQueries({ queryKey: ['/api/courses', courseId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/assets'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete section",
+        variant: "destructive",
+      });
+    },
   });
 
   if (isLoading) {
@@ -143,7 +170,7 @@ export default function CourseView() {
             const totalItems = section.assets.length + section.quizzes.length;
 
             return (
-              <Card key={section.id} data-testid={`section-${section.id}`}>
+              <Card key={section.id} data-testid={`section-${section.id}`} className="relative group">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -154,6 +181,16 @@ export default function CourseView() {
                         {totalItems} {totalItems === 1 ? 'item' : 'items'}
                       </CardDescription>
                     </div>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => deleteSectionMutation.mutate(section.id)}
+                      disabled={deleteSectionMutation.isPending}
+                      data-testid={`button-delete-section-${section.id}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -169,42 +206,81 @@ export default function CourseView() {
                         <div className="space-y-3">
                           <h4 className="text-sm font-medium text-foreground">Assets</h4>
                           <div className="grid gap-3">
-                            {section.assets.map((asset) => (
-                              <Card 
-                                key={asset.id} 
-                                className="hover-elevate"
-                                data-testid={`asset-${asset.id}`}
-                              >
-                                <CardContent className="p-4">
-                                  <div className="flex items-start justify-between gap-4">
-                                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                                      <div className="mt-1">
-                                        {getAssetIcon(asset.type)}
+                            {section.assets.map((asset) => {
+                              const isLink = asset.type === 'link';
+                              const CardWrapper = isLink ? 'a' : 'div';
+                              const cardProps = isLink ? { 
+                                href: asset.url || '#',
+                                target: "_blank",
+                                rel: "noopener noreferrer",
+                                className: "block no-underline"
+                              } : {};
+                              
+                              return (
+                                <CardWrapper key={asset.id} {...cardProps}>
+                                  <Card 
+                                    className={isLink ? "hover-elevate cursor-pointer" : ""}
+                                    data-testid={`asset-${asset.id}`}
+                                  >
+                                    <CardContent className="p-4">
+                                      <div className="flex items-start justify-between gap-4">
+                                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                                          <div className="mt-1">
+                                            {getAssetIcon(asset.type)}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <h5 className="font-medium text-foreground truncate">
+                                              {asset.title}
+                                            </h5>
+                                            <Badge variant="secondary" className="mt-1">
+                                              {getAssetTypeLabel(asset.type)}
+                                            </Badge>
+                                          </div>
+                                        </div>
                                       </div>
-                                      <div className="flex-1 min-w-0">
-                                        <h5 className="font-medium text-foreground truncate">
-                                          {asset.title}
-                                        </h5>
-                                        <Badge variant="secondary" className="mt-1">
-                                          {getAssetTypeLabel(asset.type)}
-                                        </Badge>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  {asset.type === 'video_link' && asset.url && (
-                                    <div className="mt-4">
-                                      <iframe
-                                        src={asset.url.replace('watch?v=', 'embed/')}
-                                        className="w-full aspect-video rounded-md"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                        data-testid={`iframe-${asset.id}`}
-                                      />
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
-                            ))}
+                                      
+                                      {asset.type === 'video_link' && asset.url && (
+                                        <div className="mt-4">
+                                          <iframe
+                                            src={asset.url.replace('watch?v=', 'embed/')}
+                                            className="w-full aspect-video rounded-md"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            data-testid={`iframe-${asset.id}`}
+                                          />
+                                        </div>
+                                      )}
+                                      
+                                      {asset.type === 'video_file' && asset.url && (
+                                        <div className="mt-4">
+                                          <video
+                                            controls
+                                            className="w-full rounded-md"
+                                            data-testid={`video-${asset.id}`}
+                                          >
+                                            <source src={asset.url} type="video/mp4" />
+                                            Your browser does not support the video tag.
+                                          </video>
+                                        </div>
+                                      )}
+                                      
+                                      {asset.type === 'audio_file' && asset.url && (
+                                        <div className="mt-4">
+                                          <audio
+                                            controls
+                                            className="w-full"
+                                            data-testid={`audio-${asset.id}`}
+                                          >
+                                            <source src={asset.url} type="audio/mpeg" />
+                                            Your browser does not support the audio tag.
+                                          </audio>
+                                        </div>
+                                      )}
+                                    </CardContent>
+                                  </Card>
+                                </CardWrapper>
+                              );
+                            })}
                           </div>
                         </div>
                       )}

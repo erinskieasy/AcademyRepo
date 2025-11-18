@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,34 @@ import { formatDistanceToNow } from "date-fns";
 import type { Asset } from "@shared/schema";
 import { ASSET_TYPES } from "@shared/schema";
 import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 function AssetCard({ asset }: { asset: Asset }) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const deleteAssetMutation = useMutation({
+    mutationFn: async (assetId: string) => {
+      await apiRequest("DELETE", `/api/assets/${assetId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Asset deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/assets'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete asset",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getAssetIcon = () => {
     switch (asset.type) {
       case ASSET_TYPES.VIDEO_FILE:
@@ -115,7 +141,17 @@ function AssetCard({ asset }: { asset: Asset }) {
   };
 
   return (
-    <Card className="hover-elevate" data-testid={`asset-card-${asset.id}`}>
+    <Card className="hover-elevate relative group" data-testid={`asset-card-${asset.id}`}>
+      <Button
+        variant="destructive"
+        size="icon"
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        onClick={() => deleteAssetMutation.mutate(asset.id)}
+        disabled={deleteAssetMutation.isPending}
+        data-testid={`button-delete-asset-${asset.id}`}
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
       <CardContent className="p-4 space-y-3">
         {renderPreview()}
         

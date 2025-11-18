@@ -1,6 +1,6 @@
-import { Home, Upload, FileQuestion, ListChecks, Settings, BookOpen, ChevronRight } from "lucide-react";
+import { Home, Upload, FileQuestion, ListChecks, Settings, BookOpen, ChevronRight, Trash2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
   Sidebar,
@@ -18,7 +18,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 import type { Course } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const menuItems = [
   {
@@ -56,9 +59,39 @@ const menuItems = [
 export function AppSidebar() {
   const [location] = useLocation();
   const [coursesOpen, setCoursesOpen] = useState(true);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: courses = [], isLoading } = useQuery<Course[]>({
     queryKey: ['/api/courses'],
+  });
+
+  const deleteCourseMutation = useMutation({
+    mutationFn: async (courseId: string) => {
+      await apiRequest("DELETE", `/api/courses/${courseId}`);
+      return courseId;
+    },
+    onSuccess: (deletedCourseId) => {
+      toast({
+        title: "Success",
+        description: "Course deleted successfully",
+      });
+      // Invalidate all course-related queries
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/assets'] });
+      
+      // Redirect to home if user is on the deleted course page
+      if (location.startsWith(`/course/${deletedCourseId}`)) {
+        window.location.href = '/';
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete course",
+        variant: "destructive",
+      });
+    },
   });
 
   return (
@@ -113,7 +146,7 @@ export function AppSidebar() {
                     <div className="px-4 py-2 text-xs text-muted-foreground">No courses yet</div>
                   ) : (
                     courses.map((course) => (
-                      <SidebarMenuItem key={course.id}>
+                      <SidebarMenuItem key={course.id} className="group relative">
                         <SidebarMenuButton 
                           asChild 
                           isActive={location === `/course/${course.id}`}
@@ -125,6 +158,20 @@ export function AppSidebar() {
                             <span>{course.title}</span>
                           </Link>
                         </SidebarMenuButton>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteCourseMutation.mutate(course.id);
+                          }}
+                          disabled={deleteCourseMutation.isPending}
+                          data-testid={`button-delete-course-${course.id}`}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       </SidebarMenuItem>
                     ))
                   )}
