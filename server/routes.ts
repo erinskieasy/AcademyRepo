@@ -71,6 +71,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update course
+  app.patch("/api/courses/:id", async (req, res) => {
+    try {
+      const validatedData = insertCourseSchema.partial().parse(req.body);
+      const course = await storage.updateCourse(req.params.id, validatedData);
+      if (!course) {
+        return res.status(404).json({ error: "Course not found" });
+      }
+      res.json(course);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ error: "Invalid course data", details: error.errors });
+      } else {
+        console.error("Error updating course:", error);
+        res.status(500).json({ error: "Failed to update course" });
+      }
+    }
+  });
+
   // Delete course
   app.delete("/api/courses/:id", async (req, res) => {
     try {

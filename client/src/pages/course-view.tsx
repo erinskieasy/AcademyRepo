@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Video, Music, Link as LinkIcon, FileQuestion, Plus, ChevronLeft, Trash2, Pencil, Check } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Video, Music, Link as LinkIcon, FileQuestion, Plus, ChevronLeft, Trash2, Pencil, Check, X } from "lucide-react";
 import type { Asset, Quiz } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +36,9 @@ export default function CourseView() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [isEditingCourse, setIsEditingCourse] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
 
   const { data: course, isLoading } = useQuery<CourseWithSections>({
     queryKey: ['/api/courses', courseId],
@@ -84,6 +89,49 @@ export default function CourseView() {
       });
     },
   });
+
+  const updateCourseMutation = useMutation({
+    mutationFn: async (data: { title: string; description: string | null }) => {
+      return await apiRequest("PATCH", `/api/courses/${courseId}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Course updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses', courseId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/courses'] });
+      setIsEditingCourse(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update course",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditCourse = () => {
+    if (course) {
+      setEditedTitle(course.title);
+      setEditedDescription(course.description || "");
+      setIsEditingCourse(true);
+    }
+  };
+
+  const handleSaveCourse = () => {
+    updateCourseMutation.mutate({
+      title: editedTitle,
+      description: editedDescription.trim() || null,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingCourse(false);
+    setEditedTitle("");
+    setEditedDescription("");
+  };
 
   if (isLoading) {
     return (
@@ -154,20 +202,77 @@ export default function CourseView() {
               <ChevronLeft className="w-4 h-4" />
             </Link>
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground" data-testid="text-course-title">
-              {course.title}
-            </h1>
-            {course.description && (
-              <p className="text-muted-foreground mt-2" data-testid="text-course-description">
-                {course.description}
-              </p>
+          <div className="flex-1">
+            {isEditingCourse ? (
+              <div className="space-y-3">
+                <Input
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  placeholder="Course title"
+                  className="text-3xl font-bold h-auto py-2"
+                  data-testid="input-course-title"
+                />
+                <Textarea
+                  value={editedDescription}
+                  onChange={(e) => setEditedDescription(e.target.value)}
+                  placeholder="Course description"
+                  className="resize-none"
+                  rows={2}
+                  data-testid="input-course-description"
+                />
+              </div>
+            ) : (
+              <>
+                <h1 className="text-3xl font-bold text-foreground" data-testid="text-course-title">
+                  {course.title}
+                </h1>
+                {course.description && (
+                  <p className="text-muted-foreground mt-2" data-testid="text-course-description">
+                    {course.description}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {isEditingCourse ? (
+              <>
+                <Button
+                  variant="default"
+                  size="icon"
+                  onClick={handleSaveCourse}
+                  disabled={updateCourseMutation.isPending}
+                  data-testid="button-save-course"
+                >
+                  <Check className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleCancelEdit}
+                  disabled={updateCourseMutation.isPending}
+                  data-testid="button-cancel-edit-course"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleEditCourse}
+                data-testid="button-edit-course"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground pl-14">
-          <span>{course.sections.length} {course.sections.length === 1 ? 'section' : 'sections'}</span>
-        </div>
+        {!isEditingCourse && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground pl-14">
+            <span>{course.sections.length} {course.sections.length === 1 ? 'section' : 'sections'}</span>
+          </div>
+        )}
       </div>
 
       {course.sections.length === 0 ? (
