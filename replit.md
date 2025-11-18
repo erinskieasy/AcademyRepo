@@ -165,19 +165,23 @@ The application uses the following environment variables (automatically set by R
 - `GET /api/courses` - List all courses
 - `GET /api/courses/:id` - Get course with sections, assets, and quizzes
 - `POST /api/courses` - Create new course
+- `DELETE /api/courses/:id` - Delete course (cascades to sections, assets, quizzes)
 
 ### Sections
 - `GET /api/sections?courseId=:courseId` - Get sections by course
 - `POST /api/sections` - Create new section
+- `DELETE /api/sections/:id` - Delete section (cascades to assets, quizzes)
 
 ### Assets
 - `GET /api/assets` - List all assets
 - `POST /api/assets` - Create new asset (requires sectionId)
+- `DELETE /api/assets/:id` - Delete asset
 
 ### Quizzes
 - `GET /api/quizzes` - List all quizzes
 - `GET /api/quizzes/:id` - Get quiz by ID
 - `POST /api/quizzes` - Create new quiz (requires sectionId)
+- `DELETE /api/quizzes/:id` - Delete quiz
 
 ### Object Storage
 - `POST /api/objects/upload` - Get presigned upload URL
@@ -191,9 +195,40 @@ The application runs automatically on Replit:
 2. **Database**: PostgreSQL database is provisioned and connected
 3. **Object Storage**: Object storage bucket is created and configured
 
-## Recent Changes (November 17, 2025)
+## Recent Changes (November 18, 2025)
 
-### Inline Course/Section Creation & API Documentation (Latest)
+### Delete Functionality & Media Playback (Latest)
+**Added comprehensive delete capabilities and enhanced course view with media playback:**
+
+**Delete Features:**
+- DELETE API endpoints for courses, sections, assets, and quizzes
+- Database cascade delete properly configured (ON DELETE CASCADE):
+  - Deleting a course automatically deletes all its sections, assets, and quizzes
+  - Deleting a section automatically deletes all its assets and quizzes
+- Delete buttons with hover states:
+  - Dashboard: Delete buttons on asset cards (appear on hover)
+  - Sidebar: Delete buttons on courses (appear on hover)
+  - Course View: Delete buttons on section headers (appear on hover)
+- Proper UX flow:
+  - Success/error toasts for all delete operations
+  - Automatic redirect to homepage when deleting currently-viewed course
+  - Immediate cache invalidation for seamless UI updates
+- Verified and tested: cascade delete working at database level
+
+**Media Playback & Clickable Links:**
+- Video files: Embedded HTML5 video player in course view
+- Video links: Embedded iframe player (YouTube, Vimeo, etc.)
+- Audio files: Embedded HTML5 audio player in course view
+- Link cards: Entire card is clickable (opens in new tab)
+- Fixed bugs: audio upload title setter, file upload JSON parsing
+
+**Technical Implementation:**
+- Storage layer: `deleteCourse`, `deleteSection`, `deleteAsset`, `deleteQuiz` methods
+- API routes: DELETE /api/courses/:id, /api/sections/:id, /api/assets/:id, /api/quizzes/:id
+- Cache invalidation: TanStack Query invalidates all related queries
+- Navigation safety: Redirects prevent 404 errors on deleted entities
+
+### Inline Course/Section Creation & API Documentation (November 17, 2025)
 **Added inline creation capabilities and comprehensive API documentation:**
 
 **Inline Creation Features:**
@@ -268,14 +303,15 @@ The application runs automatically on Replit:
 ## Next Steps (Future Enhancements)
 
 1. Add section reordering functionality (drag-and-drop)
-2. Implement course/section/asset deletion UI
-3. Add asset search and filtering within courses
-4. Add quiz categories and tagging
-5. Create quiz history and score tracking
-6. Add bulk upload for multiple assets
-7. Implement asset preview thumbnails
-8. Add user authentication for protected uploads
-9. Course duplication and templating
-10. Section and asset moving between courses
-11. Add copy-to-clipboard buttons for API documentation code examples
-12. Implement API rate limiting and authentication (if making API public)
+2. Add asset search and filtering within courses
+3. Add quiz categories and tagging
+4. Create quiz history and score tracking
+5. Add bulk upload for multiple assets
+6. Implement asset preview thumbnails
+7. Add user authentication for protected uploads
+8. Course duplication and templating
+9. Section and asset moving between courses
+10. Add copy-to-clipboard buttons for API documentation code examples
+11. Implement API rate limiting and authentication (if making API public)
+12. Add quiz deletion from quiz view page
+13. Add edit capabilities for courses, sections, assets, and quizzes
