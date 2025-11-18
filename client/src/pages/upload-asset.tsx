@@ -42,7 +42,8 @@ export default function UploadAsset() {
       if (!videoFile || !videoTitle || !selectedSectionId) throw new Error("Missing required fields");
       
       // Get upload URL from backend
-      const { uploadURL } = await apiRequest<{ uploadURL: string }>("POST", "/api/objects/upload", {});
+      const response = await apiRequest("POST", "/api/objects/upload", {});
+      const { uploadURL } = await response.json() as { uploadURL: string };
       
       // Upload file to object storage
       await fetch(uploadURL, {
@@ -122,7 +123,8 @@ export default function UploadAsset() {
       if (!audioFile || !audioTitle || !selectedSectionId) throw new Error("Missing required fields");
       
       // Get upload URL from backend
-      const { uploadURL} = await apiRequest<{ uploadURL: string }>("POST", "/api/objects/upload", {});
+      const response = await apiRequest("POST", "/api/objects/upload", {});
+      const { uploadURL } = await response.json() as { uploadURL: string };
       
       // Upload file to object storage
       await fetch(uploadURL, {
