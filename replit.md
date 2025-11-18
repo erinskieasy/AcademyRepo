@@ -197,7 +197,33 @@ The application runs automatically on Replit:
 
 ## Recent Changes (November 18, 2025)
 
-### Delete Functionality & Media Playback (Latest)
+### Section Edit Mode for Individual Asset Deletion (Latest)
+**Added section-level edit mode for granular asset management:**
+
+**Edit Mode Features:**
+- Edit button (pencil icon) appears on hover next to delete button on section headers
+- Clicking Edit enters edit mode for that specific section only
+- In edit mode:
+  - Edit/Delete buttons replaced with Save (check icon) button
+  - Ghost delete buttons appear on all assets in the section
+  - Delete buttons always visible (no hover required)
+  - Link cards become non-clickable during edit to prevent accidental navigation
+- Clicking Save exits edit mode and returns to normal view
+- Only one section can be in edit mode at a time
+
+**Technical Implementation:**
+- `editingSectionId` state tracks which section is being edited
+- `deleteAssetMutation` handles individual asset deletion with proper cache invalidation
+- Conditional rendering based on edit mode state
+- Proper event handling to prevent navigation during deletion
+
+**User Experience:**
+- Isolated edit mode prevents accidental changes to other sections
+- Clear visual feedback with Save button when in edit mode
+- Immediate UI updates after asset deletion
+- Success/error toasts for all operations
+
+### Delete Functionality & Media Playback
 **Added comprehensive delete capabilities and enhanced course view with media playback:**
 
 **Delete Features:**
