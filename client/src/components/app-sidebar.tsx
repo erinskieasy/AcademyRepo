@@ -146,35 +146,35 @@ export function AppSidebar() {
                     <div className="px-4 py-2 text-xs text-muted-foreground">No courses yet</div>
                   ) : (
                     courses.map((course) => (
-                      <SidebarMenuItem key={course.id}>
-                        <div className="group relative flex items-center w-full">
-                          <SidebarMenuButton 
-                            asChild 
-                            isActive={location === `/course/${course.id}`}
-                            className="flex-1 pr-8"
+                    <SidebarMenuItem key={course.id}>
+                      <div className="group relative flex items-center w-full">
+                        <SidebarMenuButton 
+                          asChild 
+                          isActive={location === `/course/${course.id}`}
+                          className="flex-1 pr-8"
+                        >
+                          <Link 
+                            href={`/course/${course.id}`} 
+                            data-testid={`link-course-${course.id}`}
                           >
-                            <Link 
-                              href={`/course/${course.id}`} 
-                              data-testid={`link-course-${course.id}`}
-                            >
-                              <span>{course.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              deleteCourseMutation.mutate(course.id);
-                            }}
-                            disabled={deleteCourseMutation.isPending}
-                            data-testid={`button-delete-course-${course.id}`}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
+                            <span>{course.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteCourseMutation.mutate(course.id);
+                          }}
+                          disabled={deleteCourseMutation.isPending}
+                          data-testid={`button-delete-course-${course.id}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                       </SidebarMenuItem>
                     ))
                   )}
